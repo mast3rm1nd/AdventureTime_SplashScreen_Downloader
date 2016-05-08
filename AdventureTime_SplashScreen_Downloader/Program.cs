@@ -23,63 +23,51 @@ namespace AdventureTime_SplashScreen_Downloader
 
         public static int what_to_download = 0;
         public static int where_to_place = 0;
+        internal static int seasonsCount = 7;
 
-       static void Main(string[] args)
+        static void Main(string[] args)
         {
-            //var test = "here is test string and i want text from HERE to lets say to THERE and here is some more test text";
-
-            //var qwd = TextHelper.Get_AllText_Between_Substrings(test, "HERE", "THERE", true);
-            //var file = "image1.jpg";
-            //var test = TextHelper.GetFileExtension(file);
-
-            //Get_Episodes_DataAsync();
-           //unsafe
-           //{
-           //    fixed(int* images_to_download_pointer = &images_to_download)
-           //    {
-           //        test(images_to_download_pointer);
-           //    }               
-           //}
-           Console.Title = "Adventure Time Episodes Data Extractor v. 0.5";
-           Console.WriteLine("Данная программа позволяет скачивать данные о эпизодах Времени Приключений с сайта advetime.ru");           
-           Console.WriteLine();
-           Console.WriteLine("Что скачивать?");
-           Console.WriteLine("[1] Только обложки.");
-           Console.WriteLine("[2] Обложки и бонусные картинки.");
-           Console.WriteLine("[3] Обложки, бонусные картинки и описания серий.");
-           do
-           {
-               Console.Write("Ваш выбор: ");
-               what_to_download = Convert.ToInt32(Console.ReadLine());
-           } while (!(what_to_download > 0 && what_to_download <= 3));
+            #region input
+            Console.Title = "Adventure Time Episodes Data Extractor v. 0.5";
+            Console.WriteLine("Данная программа позволяет скачивать данные о эпизодах Времени Приключений с сайта advetime.ru");           
+            Console.WriteLine();
+            Console.WriteLine("Что скачивать?");
+            Console.WriteLine("[1] Только обложки.");
+            Console.WriteLine("[2] Обложки и бонусные картинки.");
+            Console.WriteLine("[3] Обложки, бонусные картинки и описания серий.");
+            do
+            {
+                Console.Write("Ваш выбор: ");
+                what_to_download = Convert.ToInt32(Console.ReadLine());
+            } while (!(what_to_download > 0 && what_to_download <= 3));
 
 
-           Console.WriteLine();
+            Console.WriteLine();
 
 
-           Console.WriteLine("Куда скачиваем?");
-           Console.WriteLine("[1] В папки по сезонам и эпизодам.");
-           Console.WriteLine("[2] В папки по сезонам.");
-           Console.WriteLine("[3] Всё в одну папку.");
-           do
-           {
-               Console.Write("Ваш выбор: ");
-               where_to_place = Convert.ToInt32(Console.ReadLine());
-           } while (!(where_to_place > 0 && where_to_place <= 3));
+            Console.WriteLine("Куда скачиваем?");
+            Console.WriteLine("[1] В папки по сезонам и эпизодам.");
+            Console.WriteLine("[2] В папки по сезонам.");
+            Console.WriteLine("[3] Всё в одну папку.");
+            do
+            {
+                Console.Write("Ваш выбор: ");
+                where_to_place = Convert.ToInt32(Console.ReadLine());
+            } while (!(where_to_place > 0 && where_to_place <= 3));
 
-           Console.WriteLine();
-
+            Console.WriteLine();
+            #endregion
 
 
             Console.CursorVisible = false;
 
             Get_All_Data();
-            unsafe
+
+
+            #region waiting
+            while(!is_pages_of_episodes_ready)
             {
-                fixed (bool* ready = &is_pages_of_episodes_ready)
-                {
-                    WaitForData(ready);
-                }            
+                Thread.Sleep(10);
             }
 
             unsafe
@@ -88,16 +76,17 @@ namespace AdventureTime_SplashScreen_Downloader
                 {
                     //WaitForData(is_pages_of_epidodes_ready);
                     DrawProgressBar(pages_of_episodes_to_download, pages_of_episodes_to_download_pointer);          //progress for episodes
+                    Console.WriteLine();
+                    Console.WriteLine();
+
+                    //Console.WriteLine();
                 }
             }
 
 
-            unsafe
+            while (!is_images_ready)
             {
-                fixed (bool* ready = &is_images_ready)
-                {
-                    WaitForData(ready);
-                }
+                Thread.Sleep(10);
             }
 
 
@@ -105,28 +94,32 @@ namespace AdventureTime_SplashScreen_Downloader
             {
                 fixed (int* images_to_download_pointer = &images_to_download)
                 {
-                    //WaitForData(is_images_ready);
+                    Console.WriteLine("Downloading images...");
                     DrawProgressBar(images_to_download, images_to_download_pointer);                                //progress for images
                 }
             }
+            #endregion
 
             Console.WriteLine("\n\nСкачивание завершено, скачанные файлы находятся в папке \"Время Приключений\" :)");
-            Console.WriteLine("\n\n\n\nInspired by Polya.");
-            //Updater();
+
             Console.Read();
         }
 
 
-        //public static async Task<Episode[]> Get_Episodes_DataAsync()
         public static async Task<Episode[]> Get_Episodes_DataAsync()
         {
             var html_of_all_Series_Pages = await DownloadHelper.GetHtml_of_all_Episodes_PagesAsync();
+
+            pages_of_episodes_to_download = html_of_all_Series_Pages.Length;
 
             var all_epidodes_data = new List<Episode>();
 
             foreach(string episode_html in html_of_all_Series_Pages)
             {
-                all_epidodes_data.Add(Episode.Extract_Episode_Data_From_HTML(episode_html));
+                if (episode_html != "")
+                    all_epidodes_data.Add(Episode.Extract_Episode_Data_From_HTML(episode_html));
+                else
+                    pages_of_episodes_to_download--;
             }
 
             //all_episodes = all_epidodes_data.ToArray();
@@ -138,7 +131,7 @@ namespace AdventureTime_SplashScreen_Downloader
         {
             Episode[] episodes = await Get_Episodes_DataAsync();
 
-            Console.WriteLine("Downloading images...");
+            
             foreach (Episode episode in episodes)
             {
                 var path_to_place = "";
@@ -179,17 +172,6 @@ namespace AdventureTime_SplashScreen_Downloader
 
 
 
-
-
-
-
-
-
-                //Console.WriteLine("[1] Только обложки.");
-                //Console.WriteLine("[2] Обложки и бонусные картинки.");
-                //Console.WriteLine("[3] Обложки, бонусные картинки и описания серий.");
-
-
                 //////////////////////  ОПИСАНИЯ СЕРИЙ  //////////////////////
                 if (what_to_download == 3)
                 {
@@ -198,7 +180,6 @@ namespace AdventureTime_SplashScreen_Downloader
                 }
                 
 
-                //var download_images_task = new List<Task<void>>();
                 //////////////////////  КАРТИНКИ  //////////////////////
                 for (int i = 0; i < episode.cover_and_images.Length; i++)
                 {
@@ -248,12 +229,6 @@ namespace AdventureTime_SplashScreen_Downloader
 
 
 
-
-
-
-
-
-
         unsafe static void DrawProgressBar(int total_count, int* reference)
         {            
             
@@ -261,7 +236,7 @@ namespace AdventureTime_SplashScreen_Downloader
 
             
 
-            var delay_between_updates = 1;
+            var delay_between_updates = 10;
 
             //Console.WriteLine();
             Console.Write("[");
@@ -275,14 +250,18 @@ namespace AdventureTime_SplashScreen_Downloader
             var percents_position = Console.CursorLeft;
             var prev_percents_done = 0;
 
-            while(*reference != 0)                                                      //пока не осталось сделать 0 чего-бы то ни-было
+            do
             {
+                var ref_ = *reference;
+
                 while (Console.KeyAvailable)                                            //supresses output of keys that were pressed during scan
                 {
                     Console.ReadKey(true);
                 }
                 //var percents_done = (int)Math.Round( (double)(total_count - *reference) * 100 / total_count ); //(27 - 26) * 100 / 27
                 var percents_done = (total_count - *reference + 1) * 100 / total_count; //(27 - 26) * 100 / 27
+
+                if (percents_done < prev_percents_done) return;
 
                 var progress_chars_count = (percents_done - prev_percents_done * 4) / 4;
 
@@ -298,20 +277,85 @@ namespace AdventureTime_SplashScreen_Downloader
 
                     prev_percents_done = percents_done / 4;
                 }
-                    
 
-                    //if (percents_done % 4 == 0)
-                    //if (percents_done != prev_percents_done)
-                    //{
-                    //    Console.CursorLeft = progress_bar_position;
-                    //    Console.Write("#");
 
-                    //    prev_percents_done = percents_done;
+                //if (percents_done % 4 == 0)
+                //if (percents_done != prev_percents_done)
+                //{
+                //    Console.CursorLeft = progress_bar_position;
+                //    Console.Write("#");
 
-                    //    progress_bar_position++;
-                    //}
+                //    prev_percents_done = percents_done;
 
-                    Thread.Sleep(delay_between_updates);
+                //    progress_bar_position++;
+                //}
+
+                Thread.Sleep(delay_between_updates);
+            } while (*reference > 0);                                                      //пока не осталось сделать 0 чего-бы то ни-было
+
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+
+
+        static void DrawProgressBar(int total_count, int reference)
+        {
+
+            //var one_percent_delay = duration_seconds * 1000 / 100;
+
+
+
+            var delay_between_updates = 10;
+
+            //Console.WriteLine();
+            Console.Write("[");
+
+
+            var progress_bar_position = Console.CursorLeft;
+
+            Console.CursorLeft = Console.CursorLeft + 100 / 4;                      //jump to end of progress bar
+
+            Console.Write("] ");
+            var percents_position = Console.CursorLeft;
+            var prev_percents_done = 0;
+
+            while (reference != 0)                                                      //пока не осталось сделать 0 чего-бы то ни-было
+            {
+                while (Console.KeyAvailable)                                            //supresses output of keys that were pressed during scan
+                {
+                    Console.ReadKey(true);
+                }
+                //var percents_done = (int)Math.Round( (double)(total_count - *reference) * 100 / total_count ); //(27 - 26) * 100 / 27
+                var percents_done = (total_count - reference + 1) * 100 / total_count; //(27 - 26) * 100 / 27
+
+                var progress_chars_count = (percents_done - prev_percents_done * 4) / 4;
+
+
+                Console.CursorLeft = percents_position;
+                Console.Write("{0}% done ({1} of {2})", percents_done, total_count - reference, total_count);
+
+                for (int i = 0; i < progress_chars_count; i++)
+                {
+                    Console.CursorLeft = progress_bar_position;
+                    Console.Write("#");
+                    progress_bar_position++;
+
+                    prev_percents_done = percents_done / 4;
+                }
+
+
+                //if (percents_done % 4 == 0)
+                //if (percents_done != prev_percents_done)
+                //{
+                //    Console.CursorLeft = progress_bar_position;
+                //    Console.Write("#");
+
+                //    prev_percents_done = percents_done;
+
+                //    progress_bar_position++;
+                //}
+
+                Thread.Sleep(delay_between_updates);
             }
 
             Console.WriteLine();

@@ -63,8 +63,10 @@ namespace AdventureTime_SplashScreen_Downloader
             foreach(Match img_url in covers_m)
             {
                 all_images.Add(img_url.Groups[1].Value);
-                Program.images_to_download++;
             }
+
+            Program.images_to_download += all_images.Count;
+
             episode.cover_and_images = all_images.ToArray();
 
 

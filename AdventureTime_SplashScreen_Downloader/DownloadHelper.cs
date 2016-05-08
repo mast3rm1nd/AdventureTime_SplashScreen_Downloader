@@ -60,7 +60,7 @@ namespace AdventureTime_SplashScreen_Downloader
         static async Task<string[]> GetHtml_of_all_Seasons_PagesAsync()                                      //all pages with index > 1
         {
             var html_of_1st_pages_of_all_seasons = new List<string>();
-            html_of_1st_pages_of_all_seasons.AddRange(await GetHtml_of_all_Seasons_1st_PagesAsync(1, 6));                                      //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            html_of_1st_pages_of_all_seasons.AddRange(await GetHtml_of_all_Seasons_1st_PagesAsync(1, Program.seasonsCount));                                      //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             var result = new List<string>();
             result.AddRange(html_of_1st_pages_of_all_seasons);
